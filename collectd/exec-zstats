@@ -2,19 +2,44 @@
 
 # Copyright (c) 2012 bytemine GmbH / Felix Kronlage <kronlage@bytemine.net>
 
-ZARAFA_STATS="/usr/bin/zarafa-stats"
+ZARAFA_STATS_SESSION="/usr/bin/zarafa-stats --session"
+ZARAFA_STATS_SYSTEM="/usr/bin/zarafa-stats --system"
 
 HOSTNAME="${COLLECTD_HOSTNAME:-$(hostname)}"
 INTERVAL="${COLLECTD_INTERVAL:-10}"
 
 while sleep $INTERVAL; do
 
-	TOTAL=`$ZARAFA_STATS --session | egrep "0x674F001E|0x6701001E" | awk {'print $2'} | sed '$!N;s/\n/ /' | sort -n | egrep -v "SYSTEM" | uniq | wc -l`
-	OUTLOOK=`$ZARAFA_STATS --session | egrep "0x6750001E|0x6701001E" | awk {'print $2'} | sed '$!N;s/\n/ /' | sort -n | uniq | egrep "OUTLOOK.EXE" | wc -l`
-	GATEWAY=`$ZARAFA_STATS --session | egrep "0x6750001E|0x6701001E" | awk {'print $2'} | sed '$!N;s/\n/ /' | sort -n | uniq | egrep "zarafa-gateway" | wc -l`
+	TMPFILE_SESSION=`mktemp`
+	TMPFILE_SYSTEM=`mktemp`
+
+	$ZARAFA_STATS_SESSION > $TMPFILE_SESSION
+	$ZARAFA_STATS_SYSTEM > $TMPFILE_SYSTEM
+
+	TOTAL=`egrep "0x674F001E|0x6701001E" $TMPFILE_SESSION | awk {'print $2'} | sed '$!N;s/\n/ /' | sort -n | egrep -v "SYSTEM" | uniq | wc -l`
+	OUTLOOK=`egrep "0x6750001E|0x6701001E" $TMPFILE_SESSION | awk {'print $2'} | sed '$!N;s/\n/ /' | sort -n | uniq | egrep "OUTLOOK.EXE" | wc -l`
+	GATEWAY=`egrep "0x6750001E|0x6701001E" $TMPFILE_SESSION | awk {'print $2'} | sed '$!N;s/\n/ /' | sort -n | uniq | egrep "zarafa-gateway" | wc -l`
+	ACTIVE=`egrep -A 2 usercnt_active $TMPFILE_SYSTEM | egrep 0x6741001E | awk {'print $2'}`
+	LICENSE=`egrep -A 2 usercnt_licensed $TMPFILE_SYSTEM | egrep 0x6741001E | awk {'print $2'}`
+	SESSIONS=`egrep -A 1 'Number of sessions' $TMPFILE_SYSTEM | egrep 0x6741001E | awk {'print $2'}`
+	SOAP_REQUESTS=`grep -A 2 soap_request $TMPFILE_SYSTEM | egrep 0x6741001E | awk {'print $2'}`
+	SQL_CONNECTS=`grep -v "sql_connect_fail" $TMPFILE_SYSTEM  | grep -A 2 "sql_connect" | egrep 0x6741001E | awk {'print $2'}`
+	SQL_SELECT=`grep -v "sql_select_fail" $TMPFILE_SYSTEM  | grep -A 2 "sql_select" | egrep 0x6741001E | awk {'print $2'}`
+	SQL_INSERT=`grep -v "sql_insert_fail" $TMPFILE_SYSTEM  | grep -A 2 "sql_insert" | egrep 0x6741001E | awk {'print $2'}`
+	SQL_UPDATE=`grep -v "sql_update_fail" $TMPFILE_SYSTEM  | grep -A 2 "sql_update" | egrep 0x6741001E | awk {'print $2'}`
 
 	echo "PUTVAL $HOSTNAME/zarafa/users-zarafa_total interval=$INTERVAL N:$TOTAL"
 	echo "PUTVAL $HOSTNAME/zarafa/users-zarafa_outlook interval=$INTERVAL N:$OUTLOOK"
 	echo "PUTVAL $HOSTNAME/zarafa/users-zarafa_gateway interval=$INTERVAL N:$GATEWAY"
+	echo "PUTVAL $HOSTNAME/zarafa/gauge-zarafa_license_max interval=$INTERVAL N:$LICENSE"
+	echo "PUTVAL $HOSTNAME/zarafa/gauge-zarafa_license_configured interval=$INTERVAL N:$ACTIVE"
+	echo "PUTVAL $HOSTNAME/zarafa/gauge-zarafa_sessions interval=$INTERVAL N:$SESSIONS"
+	echo "PUTVAL $HOSTNAME/zarafa/derive-zarafa_soap interval=$INTERVAL N:$SOAP_REQUESTS"
+	echo "PUTVAL $HOSTNAME/zarafa/derive-zarafa_sql_connect interval=$INTERVAL N:$SQL_CONNECTS"
+	echo "PUTVAL $HOSTNAME/zarafa/derive-zarafa_sql_select interval=$INTERVAL N:$SQL_SELECT"
+	echo "PUTVAL $HOSTNAME/zarafa/derive-zarafa_sql_insert interval=$INTERVAL N:$SQL_INSERT"
+	echo "PUTVAL $HOSTNAME/zarafa/derive-zarafa_sql_update interval=$INTERVAL N:$SQL_UPDATE"
+
+	rm $TMPFILE_SESSION $TMPFILE_SYSTEM
 
 done
