@@ -35,7 +35,7 @@ while sleep $INTERVAL; do
 	echo "PUTVAL $HOSTNAME/zarafa/gauge-zarafa_license_configured interval=$INTERVAL N:$ACTIVE"
 	echo "PUTVAL $HOSTNAME/zarafa/gauge-zarafa_sessions interval=$INTERVAL N:$SESSIONS"
 	echo "PUTVAL $HOSTNAME/zarafa/derive-zarafa_soap interval=$INTERVAL N:$SOAP_REQUESTS"
-	echo "PUTVAL $HOSTNAME/zarafa/derive-zarafa_sql_connect interval=$INTERVAL N:$SQL_CONNECTS"
+	echo "PUTVAL $HOSTNAME/zarafa/gauge-zarafa_sql_connect interval=$INTERVAL N:$SQL_CONNECTS"
 	echo "PUTVAL $HOSTNAME/zarafa/derive-zarafa_sql_select interval=$INTERVAL N:$SQL_SELECT"
 	echo "PUTVAL $HOSTNAME/zarafa/derive-zarafa_sql_insert interval=$INTERVAL N:$SQL_INSERT"
 	echo "PUTVAL $HOSTNAME/zarafa/derive-zarafa_sql_update interval=$INTERVAL N:$SQL_UPDATE"
