@@ -1,0 +1,20 @@
+#!/bin/sh
+
+# Copyright (c) 2012 bytemine GmbH / Felix Kronlage <kronlage@bytemine.net>
+
+ZARAFA_STATS="/usr/bin/zarafa-stats"
+
+HOSTNAME="${COLLECTD_HOSTNAME:-$(hostname)}"
+INTERVAL="${COLLECTD_INTERVAL:-10}"
+
+while sleep $INTERVAL; do
+
+	TOTAL=`$ZARAFA_STATS --session | egrep "0x674F001E|0x6701001E" | awk {'print $2'} | sed '$!N;s/\n/ /' | sort -n | egrep -v "SYSTEM" | uniq | wc -l`
+	OUTLOOK=`$ZARAFA_STATS --session | egrep "0x6750001E|0x6701001E" | awk {'print $2'} | sed '$!N;s/\n/ /' | sort -n | uniq | egrep "OUTLOOK.EXE" | wc -l`
+	GATEWAY=`$ZARAFA_STATS --session | egrep "0x6750001E|0x6701001E" | awk {'print $2'} | sed '$!N;s/\n/ /' | sort -n | uniq | egrep "zarafa-gateway" | wc -l`
+
+	echo "PUTVAL $HOSTNAME/zarafa/users-zarafa_total interval=$INTERVAL N:$TOTAL"
+	echo "PUTVAL $HOSTNAME/zarafa/users-zarafa_outlook interval=$INTERVAL N:$OUTLOOK"
+	echo "PUTVAL $HOSTNAME/zarafa/users-zarafa_gateway interval=$INTERVAL N:$GATEWAY"
+
+done
