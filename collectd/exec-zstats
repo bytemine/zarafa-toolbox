@@ -27,6 +27,7 @@ while sleep $INTERVAL; do
 	SQL_SELECT=`grep -v "sql_select_fail" $TMPFILE_SYSTEM  | grep -A 2 "sql_select" | egrep 0x6741001E | awk {'print $2'}`
 	SQL_INSERT=`grep -v "sql_insert_fail" $TMPFILE_SYSTEM  | grep -A 2 "sql_insert" | egrep 0x6741001E | awk {'print $2'}`
 	SQL_UPDATE=`grep -v "sql_update_fail" $TMPFILE_SYSTEM  | grep -A 2 "sql_update" | egrep 0x6741001E | awk {'print $2'}`
+	CONNECTIONS=`egrep -A 1 "handled incoming connections" $TMPFILE_SYSTEM | egrep 0x6741001E | awk {'print $2'}`
 
 	echo "PUTVAL $HOSTNAME/zarafa/users-zarafa_total interval=$INTERVAL N:$TOTAL"
 	echo "PUTVAL $HOSTNAME/zarafa/users-zarafa_outlook interval=$INTERVAL N:$OUTLOOK"
@@ -39,6 +40,7 @@ while sleep $INTERVAL; do
 	echo "PUTVAL $HOSTNAME/zarafa/derive-zarafa_sql_select interval=$INTERVAL N:$SQL_SELECT"
 	echo "PUTVAL $HOSTNAME/zarafa/derive-zarafa_sql_insert interval=$INTERVAL N:$SQL_INSERT"
 	echo "PUTVAL $HOSTNAME/zarafa/derive-zarafa_sql_update interval=$INTERVAL N:$SQL_UPDATE"
+	echo "PUTVAL $HOSTNAME/zarafa/derive-zarafa_connections interval=$INTERVAL N:$CONNECTIONS"
 
 	rm $TMPFILE_SESSION $TMPFILE_SYSTEM
 
