@@ -3,7 +3,8 @@
 Basically just an exec-helper. 
 
 Add this to your collectd-config on the Zarafa Host (assuming you placed the
-script in /usr/local/bin).
+script in /usr/local/bin). The user you run the plugin as, must be allowed to access the
+zarafa system.
 
 	LoadPlugin exec
 	<Plugin exec>
